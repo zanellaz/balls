@@ -32,7 +32,7 @@ const chooseColor = {
         return color
     },
     randomColor() {
-        return Math.floor(Math.random() * 255 + 1)
+        return Math.floor(Math.random() * 360 + 1)
     }
 }
 
