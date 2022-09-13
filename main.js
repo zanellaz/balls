@@ -71,8 +71,8 @@ class Ball {
     update() {
         this.x += this.speedX
         this.y += this.speedY
-        if (this.size > 0.2)
-            this.size -= 0.1
+        if (this.size > 0.05)
+            this.size -= 0.04
     }
     draw() {
         const {x, y, size, color} = this
@@ -83,6 +83,24 @@ class Ball {
     }
     changeSingleBall() {
         this.color = this.color = `hsl(${ this.hue + color*7 }, 100%, 50%)`
+    }
+    ballsCollisions() {
+        const nextBallStepX = this.x + this.speedX
+        const nextBallStepY = this.y + this.speedY
+        if (nextBallStepX - this.size <= 0) {
+            this.speedX *= -1
+        }
+        if (nextBallStepY - this.size <= 0) {
+            this.speedY *= -1
+        }
+        if (nextBallStepX + this.size >= canvas.width) {
+            this.x = canvas.width - this.size
+            this.speedX *= -1
+        }
+        if (nextBallStepY + this.size >= canvas.height) {
+            this.y = canvas.height - this.size
+            this.speedY *= -1
+        }
     }
 }
 
@@ -97,19 +115,20 @@ function handleBalls() {
         ballsArray[i].update()
         ballsArray[i].draw()
         ballsArray[i].changeSingleBall()
-        if (ballsArray[i].size <= 0.2) {
+        ballsArray[i].ballsCollisions()
+        if (ballsArray[i].size <= 0.05) {
             ballsArray.splice(i, 1)
             i--
         }
     }
 }
 
-function animate() {
+function animateBalls() {
     const { width, height } = canvas
     context.fillStyle='rgba(0,0,0,1)'
     context.fillRect(0, 0, canvas.width, canvas.height)
     handleBalls()
     color++
-    requestAnimationFrame(animate)
+    requestAnimationFrame(animateBalls)
 }
-requestAnimationFrame(animate)
+requestAnimationFrame(animateBalls)
