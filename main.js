@@ -3,7 +3,7 @@ const context = canvas.getContext('2d')
 canvas.width = window.innerWidth
 canvas.height = window.innerHeight
 
-const particlesArray = []
+const ballsArray = []
 let amountOfBalls = 1
 let colorMethod = 'color'
 let color = 0
@@ -39,14 +39,14 @@ const chooseColor = {
 document.addEventListener('mousemove', ({ x, y }) => {
     mouse.x = x
     mouse.y = y
-    createParticle(amountOfBalls)
+    createBall(amountOfBalls)
 })
 
 document.addEventListener('mousedown', ({ x, y }) => {
     mouse.x = x
     mouse.y = y
     amountOfBalls = 10
-    createParticle(6)
+    createBall(6)
     changeColorMethod[colorMethod]()
 })
 
@@ -55,45 +55,50 @@ document.addEventListener('mouseup', () => {
     changeColorMethod[colorMethod]()
 })
 
-class Particle {
+class Ball {
     constructor() {
         const { width, height } = canvas
+        // const hueAdd = chooseColor.color()
         const { x, y } = mouse
-        const hue = chooseColor[colorMethod]()
+        this.hue = chooseColor[colorMethod]()
         this.x = x
         this.y = y
-        this.size = Math.random() * 15 + 1;
-        this.speedX = (Math.random() * 6) - 3
-        this.speedY = (Math.random() * 6) - 3
-        this.color = `hsl(${ hue }, 100%, 50%)`
+        this.size = Math.random() * 30 + 1
+        this.speedX = (Math.random() * 20) - 10
+        this.speedY = (Math.random() * 20) - 10
+        this.color = `hsl(${ this.hue + color }, 100%, 50%)`
     }
     update() {
         this.x += this.speedX
         this.y += this.speedY
-        if (this.size > 0.5)
-            this.size -= 0.4
+        if (this.size > 0.2)
+            this.size -= 0.1
     }
     draw() {
         const {x, y, size, color} = this
-        context.fillStyle = color;
-        context.beginPath();
+        context.fillStyle = color
+        context.beginPath()
         context.arc(x, y, size, 0, Math.PI * 2)
         context.fill() 
     }
-}
-
-function createParticle(amount) {
-    for (let i = 0; i < amount; i++) {
-        particlesArray.push(new Particle())
+    changeSingleBall() {
+        this.color = this.color = `hsl(${ this.hue + color*7 }, 100%, 50%)`
     }
 }
 
-function handleParticles() {
-    for (let i = 0; i < particlesArray.length; i++) {
-        particlesArray[i].update()
-        particlesArray[i].draw()
-        if (particlesArray[i].size <= 0.5) {
-            particlesArray.splice(i, 1);
+function createBall(amount) {
+    for (let i = 0; i < amount; i++) {
+        ballsArray.push(new Ball())
+    }
+}
+
+function handleBalls() {
+    for (let i = 0; i < ballsArray.length; i++) {
+        ballsArray[i].update()
+        ballsArray[i].draw()
+        ballsArray[i].changeSingleBall()
+        if (ballsArray[i].size <= 0.2) {
+            ballsArray.splice(i, 1)
             i--
         }
     }
@@ -101,10 +106,9 @@ function handleParticles() {
 
 function animate() {
     const { width, height } = canvas
-    // context.clearRect(0, 0, width, height);
-    context.fillStyle='rgba(0,0,0,0.3)';
+    context.fillStyle='rgba(0,0,0,1)'
     context.fillRect(0, 0, canvas.width, canvas.height)
-    handleParticles()
+    handleBalls()
     color++
     requestAnimationFrame(animate)
 }
