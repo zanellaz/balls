@@ -4,9 +4,8 @@ canvas.width = window.innerWidth
 canvas.height = window.innerHeight
 
 const ballsArray = []
-const trianglesArray = []
-let amountOfBalls = 3
-let colorMethod = 'randomColor'
+let amountOfBalls = 1
+let colorMethod = 'color'
 let color = 0
 
 window.addEventListener('resize', function () {
@@ -40,19 +39,24 @@ const chooseColor = {
 document.addEventListener('mousemove', ({ x, y }) => {
     mouse.x = x
     mouse.y = y
-    createBall(amountOfBalls)
+    if (colorMethod == 'randomColor') {
+        createLineBall(amountOfBalls)
+    }
+    else {
+        createBall(amountOfBalls)
+    }
 })
 
 document.addEventListener('mousedown', ({ x, y }) => {
     mouse.x = x
     mouse.y = y
-    amountOfBalls = 1
+    amountOfBalls = 4
     changeColorMethod[colorMethod]()
-    createTriangle()
+    createLineBall(amountOfBalls)
 })
 
 document.addEventListener('mouseup', () => {
-    amountOfBalls = 3
+    amountOfBalls = 1
     triangle = false
     changeColorMethod[colorMethod]()
 })
@@ -61,19 +65,19 @@ class Ball {
     constructor() {
         const { x, y } = mouse
         this.hue = chooseColor[colorMethod]()
-        this.vertex = undefined
+        this.line = false
         this.x = x
         this.y = y
-        this.size = Math.random() * 30 + 3
-        this.speedX = (Math.random() * 5) - 2.5
-        this.speedY = (Math.random() * 5) - 2.5
+        this.size = Math.random() * 30 + 10
+        this.speedX = (Math.random() * 15) - 7.5
+        this.speedY = (Math.random() * 15) - 7.5
         this.color = `hsl(${ this.hue + color }, 100%, 50%)`
     }
     update() {
         this.x += this.speedX
         this.y += this.speedY
-        if (this.size > 0.2)
-            this.size -= 0.19
+        if (this.size > 0.3)
+            this.size -= 0.2
     }
     draw() {
         const {x, y, size, color} = this
@@ -113,42 +117,12 @@ function createBall(amount) {
     }
 }
 
-function createTriangle() {
-    const triangle = [new Ball(), new Ball(), new Ball()]
-    triangle.forEach(ball => {
-        ballsArray.push(ball)
-    });
-    trianglesArray.push(triangle)
-}
-
-function handleTriangles() {
-    trianglesArray.forEach(triangle => {
-        const [v1, v2, v3] = triangle
-        if (v1) {
-            context.moveTo(v1.x, v1.y)
-        }
-        if (v2) {
-            context.lineTo(v2.x, v2.y)
-        }
-        if (v3) {
-            context.lineTo(v3.x, v3.y)
-        }
-        removeTriangle()
-        context.closePath()
-        // context.fillStyle = `hsl(${ v1.hue }, 100%, 50%)`
-        context.fill()
-    })
-}
-
-function removeTriangle(triangle) {
-    for (let i = 0; i < trianglesArray.length; i++) {
-        const triangle = trianglesArray[i];
-        if (!triangle) {
-            trianglesArray.splice(i, 1)
-        }
-        // console.log(triangle);
+function createLineBall(amount) {
+    for (let i = 0; i < amount; i++) {
+        const ballLine = new Ball()
+        ballLine.line = true
+        ballsArray.push(ballLine)
     }
-    // console.log(trianglesArray);
 }
 
 function handleBalls() {
@@ -157,28 +131,33 @@ function handleBalls() {
         ballsArray[i].draw()
         ballsArray[i].changeSingleBall()
         ballsArray[i].ballsCollisions()
-        if (ballsArray[i].size <= 0.2) {
+        for (let j = 1; j < ballsArray.length; j++) {
+            const ball = ballsArray[j];
+            const xDistance = ballsArray[i].x - ball.x
+            const yDistance = ballsArray[i].y - ball.y
+            const distance = Math.sqrt(yDistance * yDistance + xDistance * xDistance)
+            if (distance < 100) {
+                context.beginPath()
+                if (ball.line && ballsArray[i].line) {
+                    context.strokeStyle = ballsArray[i].color;
+                    context.moveTo(ballsArray[i].x, ballsArray[i].y)
+                    context.lineTo(ball.x, ball.y)
+                }
+                context.stroke()   
+            }
+        }
+        if (ballsArray[i].size <= 0.3) {
             ballsArray.splice(i, 1)
             i--
         }
-        trianglesArray.forEach(triangle => {
-            for (let i = 0; i < triangle.length; i++) {
-                const ball = triangle[i];
-                if (ball.size <= 0.2) {
-                    triangle.splice(i, 1)
-                    i--
-                }
-            }
-        });
     }
 }
 
 function animateBalls() {
     const { width, height } = canvas
-    context.fillStyle='rgba(0,0,0,0.5)'
+    context.fillStyle='rgba(0,0,0,0.4)'
     context.fillRect(0, 0, width, height)
     handleBalls()
-    handleTriangles()
     color++
     requestAnimationFrame(animateBalls)
 }
